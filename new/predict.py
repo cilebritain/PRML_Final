@@ -6,11 +6,10 @@ def Work(test_path, checkpoint_path, preds_path):
     checkpoint = torch.load(checkpoint_path)
     lstmmodel = model.LSTMModel()
     lstmmodel.load_state_dict(checkpoint['net'])
-    lstmmodel = lstmmodel.double()
+    lstmmodel = lstmmodel.double().cuda()
     
     test_data = data.ScanFold(datapath=test_path)
-    x, y = data.Format(test_data, one_hot=False, align=True)
-    x = torch.tensor(x)
+    x, y = data.Format(test_data, one_hot=False, align=False)
     y = lstmmodel.predict(x)
     
     f = open(preds_path, "w")

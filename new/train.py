@@ -5,11 +5,12 @@ from handout import *
 
 def TrainOneStep(model, x, t, optimizer):
     t = torch.tensor(t).cuda()
-    x = torch.tensor(x).cuda()
+#    x = torch.tensor(x).cuda()
     model = model.double().cuda()
     
     loss_fun = torch.nn.MSELoss(reduction='none')
-    weight = torch.tensor([1 if t[i] > .1 else .25 for i in range(x.size()[0])]).cuda()
+#    weight = torch.tensor([1. if t[i] > .1 else .25 for i in range(t.size()[0])]).cuda()
+    weight = torch.ones(t.size()[0]).cuda()
     optimizer.zero_grad()
     y = model(x).cuda()
     loss = loss_fun(y, t)
@@ -23,8 +24,9 @@ def TrainOneStep(model, x, t, optimizer):
 def Train(train_data, model, optimizer, epoch = 100, batch_size = 100):
     loss = 0.0
     for step in range(epoch):
-        batch_data = data.Select(train_data, n=batch_size, balance=True, rate=5.)
-        x, t = data.Format(batch_data, one_hot=False, align=True)
+        batch_data = Select(train_data, n=batch_size, balance=True, rate=5.)
+#        c, s, y = Parentheses(batch_data)
+        x, t = Format(batch_data, one_hot=False, align=False)
         loss = TrainOneStep(model, x, t, optimizer)
         print('step', step, ': loss', loss)
 
