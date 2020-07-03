@@ -8,8 +8,7 @@ def TrainOneStepTree(model, s, c, t, optimizer):
 #    x = torch.tensor(x).cuda()
     model = model.double().cuda()
     
-    weight = torch.tensor([0.4, 1.], dtype=torch.float64).cuda()
-    loss_fun = torch.nn.CrossEntropyLoss(weight=weight)
+    loss_fun = torch.nn.CrossEntropyLoss()
     optimizer.zero_grad()
     y = model(s, c).cuda()
 #    print(y.cpu())
@@ -24,8 +23,7 @@ def TrainOneStepLstm(model, x, t, optimizer):
     t = torch.tensor(t, dtype=torch.long).cuda()
     model = model.double().cuda()
     
-    weight = torch.tensor([0.4, 1.], dtype=torch.float64).cuda()
-    loss_fun = torch.nn.CrossEntropyLoss(weight=weight)
+    loss_fun = torch.nn.CrossEntropyLoss()
     optimizer.zero_grad()
     y = model(x).cuda()
     loss = loss_fun(y, t)    
@@ -34,13 +32,15 @@ def TrainOneStepLstm(model, x, t, optimizer):
 
     return loss.item()
 
-def Train(train_data, model, optimizer, epoch = 100, batch_size = 100, model_kind='tree'):
+def Train(train_data, model, optimizer, epoch = 500, batch_size = 150, model_kind='tree'):
     loss = 0.0
     for step in range(epoch):
-        batch_data = Select(train_data, n=batch_size, balance=True, rate=4.)
+        batch_data = Select(train_data, n=batch_size, balance=True, rate=1.5)
         loss = 0.
         if model_kind == 'lstm':
             x, t = Format(batch_data, one_hot=False, align=False)
+#            print(x, t)
+#            return
             loss = TrainOneStepLstm(model, x, t, optimizer)
         else:
             s, c, t = Parentheses(batch_data)
@@ -54,13 +54,13 @@ def Work(datapath, save_dir, model_kind):
         lstmmodel = model.LSTMModel()
         optimizer = torch.optim.Adam(params=lstmmodel.parameters(), lr=0.005)
         Train(all_data, model=lstmmodel, optimizer=optimizer, model_kind='lstm')
-        state = {'net':lstmmodel.state_dict()}
+        state = {'net':lstmmodel.state_dict(), 'model_kind':'lstm'}
         torch.save(state, save_dir)
     else:
         treemodel = model.TreeModel()
-        optimizer = torch.optim.Adam(params=treemodel.parameters(), lr=1)
+        optimizer = torch.optim.Adam(params=treemodel.parameters(), lr=0.005)
         Train(all_data, model=treemodel, optimizer=optimizer, model_kind='tree')
-        state = {'net':treemodel.state_dict()}
+        state = {'net':treemodel.state_dict(), 'model_kind':'tree'}
         torch.save(state, save_dir)
     
 

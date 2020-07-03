@@ -1,3 +1,3 @@
-python train.py --data_path ../data/train.csv --dataset_type regression --save_dir ../data/checkpoints --smiles_column "smiles" --target_columns "activity"
+python train.py --data_path ../data/train.csv --dataset_type classification --save_dir ../data/checkpoints --smiles_column "smiles" --target_columns "activity"
 python predict.py --test_path ../data/train.csv --checkpoint_dir ../data/checkpoints --preds_path ../data/train_preds.csv --smiles_column "smiles" 
 

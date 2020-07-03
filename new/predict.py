@@ -4,13 +4,22 @@ from handout import *
 
 def Work(test_path, checkpoint_path, preds_path):
     checkpoint = torch.load(checkpoint_path)
-    lstmmodel = model.LSTMModel()
-    lstmmodel.load_state_dict(checkpoint['net'])
-    lstmmodel = lstmmodel.double().cuda()
-    
+    model_kind = checkpoint['model_kind']
+
     test_data = data.ScanFold(datapath=test_path)
-    x, y = data.Format(test_data, one_hot=False, align=False)
-    y = lstmmodel.predict(x)
+    if model_kind == 'lstm':
+        lstmmodel = model.LSTMModel()
+        lstmmodel.load_state_dict(checkpoint['net'])
+        lstmmodel = lstmmodel.double().cuda()
+        x, y = data.Format(test_data, one_hot=False, align=False)
+        y = lstmmodel.predict(x)
+    else:
+        treemodel = model.TreeModel()
+        treemodel.load_state_dict(checkpoint['net'])
+        treemodel = treemodel.double().cuda()
+        test_data = data.ScanFold(datapath=test_path)
+        s, c, y = data.Parentheses(test_data)
+        y = treemodel.predict(s, c)
     
     f = open(preds_path, "w")
     f.write("smiles,activity\n")

@@ -10,7 +10,7 @@ def ScanFold(datapath):
         s_ = s.split(",")
         s_[2] = s_[2].replace('\n','')
         data = np.append(data, np.asarray([[s_[1], s_[2]]]), 0)
-    np.random.shuffle(data)
+#    np.random.shuffle(data)
     return data
 
 def Split(data, rate):
@@ -35,11 +35,11 @@ def Select(data, n, balance = False, rate = 4.):
         negative = np.asarray([data[i] for i in range(tot) if float(data[i][1]) <= .1])
         
         postive_num = int(n * 1 / (1 + rate))
-        if postive_num > postive.shape[0]:
+        if postive_num <= postive.shape[0]:
             negative_num = n - postive_num
         else:
-            negative_num = int(n * rate / (1 + rate))
-            postive_num = n - negative_num
+            postive_num = postive.shape[0]
+            negative_num = n - postive_num
 
         np.random.shuffle(postive)
         np.random.shuffle(negative)

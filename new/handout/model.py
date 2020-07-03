@@ -6,11 +6,11 @@ import numpy as np
 class LSTMModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.lstm = nn.LSTM(1, 64, num_layers=4, batch_first=True, bidirectional=True)
-        self.line1 = nn.Linear(128, 2)
+        self.lstm = nn.LSTM(1, 32, num_layers=2, batch_first=True, bidirectional=True)
+        self.line1 = nn.Linear(64, 2)
     
     def forward(self, x):
-        y = torch.zeros((x.shape[0], 128), dtype=torch.float64).cuda()
+        y = torch.zeros((x.shape[0], 64), dtype=torch.float64).cuda()
         for i in range(x.shape[0]):
             s = x[i]
             s = [[[float(ord(s[i]))] for i in range(len(s))]]
@@ -34,8 +34,8 @@ class LSTMModel(nn.Module):
 class TreeModel(nn.Module):
     def __init__(self):
         super().__init__()
-        self.lstm1 = nn.LSTM(1, 32, num_layers=2, batch_first=True, bidirectional=True)
-        self.lstm2 = nn.LSTM(64, 32, num_layers=2, batch_first=True, bidirectional=True)
+        self.lstm1 = nn.LSTM(1, 32, num_layers=1, batch_first=True, bidirectional=True)
+        self.lstm2 = nn.LSTM(64, 32, num_layers=1, batch_first=True, bidirectional=True)
         self.line = nn.Linear(64, 2)
     
     def forward(self, s, c):
@@ -47,8 +47,6 @@ class TreeModel(nn.Module):
                 cc = 0
                 a = []
                 sub = []
-#                print(s[i])
-#                print(c[i])
                 for k in range(len(s[i][j])):
                     if cc == len(c[i][j]) or k != c[i][j][cc][1]: 
                         sub.append([ord(s[i][j][k])])
@@ -59,8 +57,6 @@ class TreeModel(nn.Module):
                             a.append(rs[0][len(sub) - 1][:])
                             sub = []
                         a.append(f[c[i][j][cc][0]])
-                
-#                print(a)
 
                 if len(sub) != 0:
                     ts = torch.tensor([sub], dtype=torch.float64).cuda()
@@ -72,7 +68,6 @@ class TreeModel(nn.Module):
                     ts = torch.cat((ts, x), 0)
                 ts = ts.view([1, len(a), a[0].size()[0]])
                 rs, h = self.lstm2(ts)
-#                print(rs.size())
                 f[j] = rs[0][len(a) - 1][:]
             
             rs = self.line(f[0])
@@ -81,13 +76,12 @@ class TreeModel(nn.Module):
 
         return y
 
-    def predict(self, x):
-        n = x.shape[0]
+    def predict(self, s, c):
+        n = len(s)
         i = 0
-        y = torch.zeros(0).double().cuda()
-        while i < n:
-            j = min(i + 10, n)
-            p = self.forward(x[i: j])
-            y = torch.cat((y, p))
-            i = j
-        return y.cpu()
+        y = []
+        for i in range(n):
+            p = self.forward(s[i: i + 1], c[i: i + 1])
+            y.append(torch.argmax(p[0]))
+
+        return torch.tensor(y)
