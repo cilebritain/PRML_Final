@@ -78,7 +78,7 @@ def Format(data, one_hot = False, align = False):
         else: 
             x = np.asarray([data[i][0] for i in range(n)])
 
-    y = np.asarray([float(data[i][1]) for i in range(n)])
+    y = np.asarray([int(data[i][1]) for i in range(n)])
     return x, y
     
 def Parentheses(data):
@@ -98,7 +98,7 @@ def Parentheses(data):
         top = -1
         N = 0
         s.append([])
-        c.append([[]])
+        c.append([])
         stack = [0 for i in range(len(smiles))]
 
         for j in range(len(smiles)):
@@ -108,8 +108,8 @@ def Parentheses(data):
                 stack[top] = N
                 N = N + 1
 
-                s[i].append('')
                 c[i].append([])
+                s[i].append('')
                 if (top > 0):
                     c[i][p].append([N - 1, len(s[i][p])])
             else:
