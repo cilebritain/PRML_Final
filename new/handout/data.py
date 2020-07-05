@@ -8,9 +8,9 @@ def ScanFold(datapath):
     data = np.zeros((0, 2))
     for s in f.readlines():
         s_ = s.split(",")
-        s_[2].replace('\n','')
+        s_[2] = s_[2].replace('\n','')
         data = np.append(data, np.asarray([[s_[1], s_[2]]]), 0)
-    np.random.shuffle(data)
+#    np.random.shuffle(data)
     return data
 
 def Split(data, rate):
@@ -24,6 +24,10 @@ def Split(data, rate):
     return train_data, val_data, test_data
 
 def Select(data, n, balance = False, rate = 4.):
+    '''
+    Select subdata from data
+    Select postive samples : negative samples (0.1) euqals to rate if balace
+    '''
     tot = data.shape[0]
 
     if (balance):
@@ -31,11 +35,11 @@ def Select(data, n, balance = False, rate = 4.):
         negative = np.asarray([data[i] for i in range(tot) if float(data[i][1]) <= .1])
         
         postive_num = int(n * 1 / (1 + rate))
-        if postive_num > postive.shape[0]:
+        if postive_num <= postive.shape[0]:
             negative_num = n - postive_num
         else:
-            negative_num = int(n * rate / (1 + rate))
-            postive_num = n - negative_num
+            postive_num = postive.shape[0]
+            negative_num = n - postive_num
 
         np.random.shuffle(postive)
         np.random.shuffle(negative)
@@ -47,6 +51,10 @@ def Select(data, n, balance = False, rate = 4.):
     return data
 
 def Format(data, one_hot = False, align = False): 
+    '''
+    Convert string into ord list or one hot list
+    expend the list into the same length(max) if align
+    '''
     x = np.zeros(0)
     y = np.zeros(0)
     n = data.shape[0]
@@ -70,7 +78,46 @@ def Format(data, one_hot = False, align = False):
         else: 
             x = np.asarray([data[i][0] for i in range(n)])
 
-    y = np.asarray([float(data[i][1]) for i in range(n)])
+    y = np.asarray([int(data[i][1]) for i in range(n)])
     return x, y
     
+def Parentheses(data):
+    '''
+    Bulid a tree structure from the string
+    c[i][j][k][0..1]: in the sample i and the node j, the node(0) poings to and the postion the substring in the string j(1)
+    s[i][j]: the string in the sample i and the node j
+    y[i]: the ground truth of the sample i
+    '''
+    y = np.zeros(0)
+    n = data.shape[0] 
+    s = []
+    c = []
 
+    for i in range(n):
+        smiles = '(' + data[i][0]+ ')'
+        top = -1
+        N = 0
+        s.append([])
+        c.append([])
+        stack = [0 for i in range(len(smiles))]
+
+        for j in range(len(smiles)):
+            if smiles[j] == '(':
+                p = stack[top] if top >= 0 else 0
+                top = top + 1
+                stack[top] = N
+                N = N + 1
+
+                c[i].append([])
+                s[i].append('')
+                if (top > 0):
+                    c[i][p].append([N - 1, len(s[i][p])])
+            else:
+                if smiles[j] == ')':
+                    stack[top] = 0
+                    top = top - 1
+                else:
+                    s[i][stack[top]] += smiles[j]
+                
+    y = np.asarray([float(data[i][1]) for i in range(n)])
+    return s, c, y

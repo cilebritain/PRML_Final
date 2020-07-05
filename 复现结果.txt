@@ -1,0 +1,6 @@
+bbbp:	overall test auc = 0.914177
+ESOL:	overall test rmse = 7.620516
+FreeSolv:	over test rmse = 0.995371
+HIV:	overall test auc = 0.761205
+lipophilicity:	overall test rmse = 0.554541
+tox21:	over test auc = 0.840132
