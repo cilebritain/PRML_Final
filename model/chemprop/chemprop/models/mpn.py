@@ -66,7 +66,7 @@ class MPNEncoder(nn.Module):
                 features_batch: List[np.ndarray] = None) -> torch.FloatTensor:
         """
         Encodes a batch of molecular graphs.
-
+get_atom_fdim
         :param mol_graph: A BatchMolGraph representing a batch of molecular graphs.
         :param features_batch: A list of ndarrays containing additional features.
         :return: A PyTorch tensor of shape (num_molecules, hidden_size) containing the encoding of each molecule.
@@ -159,6 +159,12 @@ class MPN(nn.Module):
         super(MPN, self).__init__()
         self.atom_fdim = atom_fdim or get_atom_fdim()
         self.bond_fdim = bond_fdim or get_bond_fdim(atom_messages=args.atom_messages)
+
+        print(get_atom_fdim())
+        print(get_bond_fdim(atom_messages=args.atom_messages))
+
+#        self.atom_fdim = 127
+#        self.bond_fdim = 12
         self.encoder = MPNEncoder(args, self.atom_fdim, self.bond_fdim)
 
     def forward(self,

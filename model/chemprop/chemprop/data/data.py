@@ -288,8 +288,8 @@ class MoleculeSampler(Sampler):
             self.length = 2 * min(len(self.positive_indices), len(self.negative_indices))
         else:
             if self.positive_balance:
-                self.positive_indices = [index for index, datapoint in enumerate(dataset) if datapoint.targets[0] > .2]
-                self.negative_indices = [index for index, datapoint in enumerate(dataset) if datapoint.targets[0] <= .2]
+                self.positive_indices = [index for index, datapoint in enumerate(dataset) if datapoint.targets[0] == 1]
+                self.negative_indices = [index for index, datapoint in enumerate(dataset) if datapoint.targets[0] == 0]
             
                 self.length = 5 * min(len(self.positive_indices), len(self.negative_indices) // 4)
             else:
@@ -312,10 +312,8 @@ class MoleculeSampler(Sampler):
                     self._random.shuffle(self.positive_indices)
                     self._random.shuffle(self.negative_indices)
 
-                    indices = [index for index in self.positive_indices] + [index for index in self.negative_indices]
-
-                    if self.shuffle:
-                        self._random.shuffle(indices)
+                num = self.length // 5
+                indices = [self.positive_indices[index] for index in range(num)] + [self.negative_indices[index] for index in range(4 * num)]
             else:
                 indices = list(range(len(self.dataset)))
 

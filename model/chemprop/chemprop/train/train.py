@@ -58,7 +58,7 @@ def train(model: nn.Module,
         class_weights = torch.ones(targets.shape, device=preds.device)
         for i in range(targets.shape[0]):
             for j in range(targets.shape[1]):
-                if targets[i][j] < .2:
+                if targets[i][j] < .5:
                     class_weights[i][j] = .5
 
         if args.dataset_type == 'multiclass':

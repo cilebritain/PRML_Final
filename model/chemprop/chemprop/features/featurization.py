@@ -1,6 +1,7 @@
 from typing import List, Tuple, Union
 
 from rdkit import Chem
+from rdkit.Chem import AllChem
 import torch
 
 # Atom feature sizes
@@ -27,7 +28,7 @@ THREE_D_DISTANCE_STEP = 1
 THREE_D_DISTANCE_BINS = list(range(0, THREE_D_DISTANCE_MAX + 1, THREE_D_DISTANCE_STEP))
 
 # len(choices) + 1 to include room for uncommon values; + 2 at end for IsAromatic and mass
-ATOM_FDIM = sum(len(choices) + 1 for choices in ATOM_FEATURES.values()) + 2
+ATOM_FDIM = sum(len(choices) + 1 for choices in ATOM_FEATURES.values()) + 5#2
 BOND_FDIM = 14
 
 
@@ -63,7 +64,7 @@ def onek_encoding_unk(value: int, choices: List[int]) -> List[int]:
     return encoding
 
 
-def atom_features(atom: Chem.rdchem.Atom, functional_groups: List[int] = None) -> List[Union[bool, int, float]]:
+def atom_features(atom: Chem.rdchem.Atom, x, y, z, functional_groups: List[int] = None) -> List[Union[bool, int, float]]:
     """
     Builds a feature vector for an atom.
 
@@ -71,6 +72,7 @@ def atom_features(atom: Chem.rdchem.Atom, functional_groups: List[int] = None) -
     :param functional_groups: A k-hot vector indicating the functional groups the atom belongs to.
     :return: A list containing the atom features.
     """
+
     features = onek_encoding_unk(atom.GetAtomicNum() - 1, ATOM_FEATURES['atomic_num']) + \
            onek_encoding_unk(atom.GetTotalDegree(), ATOM_FEATURES['degree']) + \
            onek_encoding_unk(atom.GetFormalCharge(), ATOM_FEATURES['formal_charge']) + \
@@ -78,7 +80,10 @@ def atom_features(atom: Chem.rdchem.Atom, functional_groups: List[int] = None) -
            onek_encoding_unk(int(atom.GetTotalNumHs()), ATOM_FEATURES['num_Hs']) + \
            onek_encoding_unk(int(atom.GetHybridization()), ATOM_FEATURES['hybridization']) + \
            [1 if atom.GetIsAromatic() else 0] + \
-           [atom.GetMass() * 0.01]  # scaled to about the same range as other features
+           [atom.GetMass() * 0.01] + \
+           [x, y, z]
+           # 100 is too large, set to 10
+           # scaled to about the same range as other features
     if functional_groups is not None:
         features += functional_groups
     return features
@@ -102,7 +107,7 @@ def bond_features(bond: Chem.rdchem.Bond) -> List[Union[bool, int, float]]:
             bt == Chem.rdchem.BondType.TRIPLE,
             bt == Chem.rdchem.BondType.AROMATIC,
             (bond.GetIsConjugated() if bt is not None else 0),
-            (bond.IsInRing() if bt is not None else 0)
+            (bond.IsInRing() if bt is not None else 0)            
         ]
         fbond += onek_encoding_unk(int(bond.GetStereo()), list(range(6)))
     return fbond
@@ -141,7 +146,17 @@ class MolGraph:
         self.b2revb = []  # mapping from bond index to the index of the reverse bond
 
         # Get atom features
-        self.f_atoms = [atom_features(atom) for atom in mol.GetAtoms()]
+        dm = AllChem.GetDistanceMatrix(mol)
+        atom_queue = mol.GetAtoms()
+        self.f_atoms = []
+        for i in range(len(atom_queue)):
+            x = dm[0][i]
+            y = dm[1][i] if len(atom_queue) > 1 else 0.
+            z = dm[2][i] if len(atom_queue) > 2 else 0.
+#            x = 0.
+#            y = 0.
+#            z = 0.
+            self.f_atoms.append(atom_features(atom_queue[i], x=x, y=y, z=z))
         self.n_atoms = len(self.f_atoms)
 
         # Initialize atom to bond mapping for each atom
