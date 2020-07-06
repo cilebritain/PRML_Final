@@ -8,8 +8,8 @@ def ScanFold(datapath):
     data = np.zeros((0, 2))
     for s in f.readlines():
         s_ = s.split(",")
-        s_[2] = s_[2].replace('\n','')
-        data = np.append(data, np.asarray([[s_[1], s_[2]]]), 0)
+        s_[1] = s_[1].replace('\n','')
+        data = np.append(data, np.asarray([[s_[0], s_[1]]]), 0)
 #    np.random.shuffle(data)
     return data
 

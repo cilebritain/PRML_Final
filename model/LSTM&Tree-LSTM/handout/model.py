@@ -26,9 +26,11 @@ class LSTMModel(nn.Module):
         i = 0
         y = []
         for i in range(n):
-            p = self.forward(x[i: i + 1])
-            y.append(p[0])
-        return torch.tensor(y)
+            p = self.forward(x[i: i + 1]).cpu()
+            y.append(F.softmax(p[0], dim = 0))
+        y = torch.tensor(np.array([item.detach().numpy() for item in y]))
+#        print(y)
+        return y
 
 
 class TreeModel(nn.Module):
@@ -81,7 +83,7 @@ class TreeModel(nn.Module):
         i = 0
         y = []
         for i in range(n):
-            p = self.forward(s[i: i + 1], c[i: i + 1])
-            y.append(p[0])
-
-        return torch.tensor(y)
+            p = self.forward(s[i: i + 1], c[i: i + 1]).cpu()
+            y.append(F.softmax(p[0], dim = 0))
+        y = torch.tensor(np.array([item.detach().numpy() for item in y]))
+        return y
