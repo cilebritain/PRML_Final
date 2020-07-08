@@ -1,25 +1,18 @@
+import math
 import torch
 import argparse
 from numpy import float64
 from handout import *
 from sklearn import metrics
-
-def ComputeLoss(y, t):
-    y = y.cuda()
-    t = t.cuda()
-    loss_fun = torch.nn.CrossEntropyLoss(reduction='none')
-    weight = torch.tensor([1. if x == 1 else .75 for x in t ]).cuda()
-    loss = loss_fun(y, t) 
-    loss = loss * weight / t.size()[0]
-    loss = loss.sum()
-    return loss
+from torch.autograd import Variable
 
 def TrainOneStepTree(model, s, c, t, optimizer):
     model = model.double().cuda()
     optimizer.zero_grad()
     t = torch.tensor(t, dtype=torch.long).cuda()
     y = model(s, c).cuda()
-    loss = ComputeLoss(y, t)
+    fl = FocalLoss(gamma=2).cuda()
+    loss = fl(y, t)
     loss.backward()
     optimizer.step()
 
@@ -30,7 +23,8 @@ def TrainOneStepLstm(model, x, t, optimizer):
     optimizer.zero_grad()
     t = torch.tensor(t, dtype=torch.long).cuda()
     y = model(x).cuda()
-    loss = ComputeLoss(y, t)
+    fl = FocalLoss(gamma=2).cuda()
+    loss = fl(y, t)
     loss.backward()
     optimizer.step()
 
@@ -63,25 +57,10 @@ def Test(test_data, model, model_kind):
 #    return loss.cpu()
     return roc_auc, prc_auc
 
-def TestLoss(test_data, model, model_kind):
-    if model_kind == 'lstm':
-        x, t = Format(test_data, one_hot=False, align=False)
-        y = model.predict(x)
-        t = torch.tensor(t, dtype=torch.long)
-        loss = ComputeLoss(y, t)
-    else:
-        s, c, t = Parentheses(test_data)
-        y = model.predict(s, c)
-        t = torch.tensor(t, dtype=torch.long)
-        loss = ComputeLoss(y, t)
-        
-    return loss.cpu()
-
-
 def Train(train_data, val_data, model, optimizer, epoch = 200, batch_size = 100, model_kind='tree'):
     loss = 0.0
     for step in range(epoch):
-        batch_data = Select(train_data, n=batch_size, balance=True, rate=1.5)
+        batch_data = Select(train_data, n=batch_size, balance=True, rate=3.)
         loss = 0.
         if model_kind == 'lstm':
             x, t = Format(batch_data, one_hot=False, align=False)
@@ -89,11 +68,9 @@ def Train(train_data, val_data, model, optimizer, epoch = 200, batch_size = 100,
         else:
             s, c, t = Parentheses(batch_data)
             loss = TrainOneStepTree(model, s, c, t, optimizer)
-        if step % 20 == 0:
+        if step % 30 == 0:
             roc_auc, prc_auc = Test(val_data, model, model_kind)
             print('step', step, ': roc_auc =', roc_auc, ', prc_auc =', prc_auc)
-#            loss = TestLoss(val_data, model, model_kind)
-#            print('step', step, ': loss =', loss.item())
 
 
 def CrossValidate(datapath, model_kind, fold_num=0):
@@ -110,6 +87,16 @@ def CrossValidate(datapath, model_kind, fold_num=0):
 
     Train(train_data, val_data, model, optimizer, model_kind=model_kind)
     roc_auc, prc_auc = Test(test_data, model, model_kind)
+
+    if model_kind == 'lstm':
+        x, t = Format(test_data, one_hot=False, align=False)
+        y = model.predict(x)
+#        print(y)
+    else:
+        s, c, t = Parentheses(test_data)
+        y = model.predict(s, c)
+        print(y)
+
     print('test' + str(i) + ': roc_auc = ' + str(roc_auc) + ', prc_auc = ' + str(prc_auc))
 
     
