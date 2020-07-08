@@ -16,9 +16,11 @@ class LSTMModel(nn.Module):
             s = [[[float(ord(s[i]))] for i in range(len(s))]]
             s = torch.tensor(s, dtype=torch.float64).cuda()
             rs, h = self.lstm(s)
-#            print(rs.size())
             y[i] = rs[0][len(x[i]) - 1][:]
         y = self.line1(y)
+#        print(y)
+        y = F.softmax(y, dim=1)
+#        print(y)
         return y
 
     def predict(self, x):
@@ -27,7 +29,7 @@ class LSTMModel(nn.Module):
         y = []
         for i in range(n):
             p = self.forward(x[i: i + 1]).cpu()
-            y.append(F.softmax(p[0], dim = 0))
+            y.append(p[0])
         y = torch.tensor(np.array([item.detach().numpy() for item in y]))
 #        print(y)
         return y
@@ -73,8 +75,9 @@ class TreeModel(nn.Module):
                 f[j] = rs[0][len(a) - 1][:]
             
             rs = self.line(f[0])
-            rs = torch.softmax(rs, 0)
-            y = torch.cat((y, rs.view([1, 2])), 0)
+            rs = rs.view([1, 2])
+            rs = torch.softmax(rs, dim=1)
+            y = torch.cat((y, rs), 0)
 
         return y
 
@@ -84,6 +87,6 @@ class TreeModel(nn.Module):
         y = []
         for i in range(n):
             p = self.forward(s[i: i + 1], c[i: i + 1]).cpu()
-            y.append(F.softmax(p[0], dim = 0))
+            y.append(p[0])
         y = torch.tensor(np.array([item.detach().numpy() for item in y]))
         return y

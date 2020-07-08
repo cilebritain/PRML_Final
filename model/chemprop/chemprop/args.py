@@ -122,9 +122,9 @@ class TrainArgs(CommonArgs):
     separate_val_path: str = None  # Path to separate val set, optional
     separate_test_path: str = None  # Path to separate test set, optional
     split_type: Literal['random', 'scaffold_balanced', 'predetermined', 'crossval', 'index_predetermined'] = 'random'  # Method of splitting the data into train/val/test
-    split_sizes: Tuple[float, float, float] = (0.8, 0.1, 0.1)  # Split proportions for train/validation/test sets
+    split_sizes: Tuple[float, float, float] = (.8, .1, .1)  # Split proportions for train/validation/test sets
     num_folds: int = 1  # Number of folds when performing cross validation
-    folds_file: str = None  # Optional file of fold labels
+    folds_file: str = None  # Optional file of foldfold labels
     val_fold_index: int = None  # Which fold to use as val for leave-one-out cross val
     test_fold_index: int = None  # Which fold to use as test for leave-one-out cross val
     crossval_index_dir: str = None  # Directory in which to find cross validation index files

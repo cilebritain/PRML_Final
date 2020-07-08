@@ -1,3 +1,4 @@
-python train.py --data_path ../data/train.csv --dataset_type classification --save_dir ../data/checkpoints --smiles_column "smiles" --target_columns "activity"
-python predict.py --test_path ../data/train.csv --checkpoint_dir ../data/checkpoints --preds_path ../data/train_preds.csv --smiles_column "smiles" 
+python train.py --data_path ../../data/train_cv/fold_9/train.csv  --separate_val_path ../../data/train_cv/fold_9/dev.csv  --separate_test_path ../../data/train_cv/fold_9/test.csv --dataset_type classification --save_dir ../../data/checkpoints --smiles_column "smiles" --target_columns "activity"
+
+python predict.py --test_path ../../data/train_cv/fold_9/test.csv --checkpoint_dir ../../data/checkpoints --preds_path ../../data/train_cv/fold_9/preds.csv --smiles_column "smiles" 
 

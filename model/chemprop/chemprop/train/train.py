@@ -55,17 +55,14 @@ def train(model: nn.Module,
         # Move tensors to correct device
         mask = mask.to(preds.device)
         targets = targets.to(preds.device)
-        class_weights = torch.ones(targets.shape, device=preds.device)
-        for i in range(targets.shape[0]):
-            for j in range(targets.shape[1]):
-                if targets[i][j] < .5:
-                    class_weights[i][j] = .5
-
+        
+        weights = torch.tensor([[1.] if targets[i][0] == 0 else [1.] for i in range(targets.size()[0])]).cuda()
         if args.dataset_type == 'multiclass':
             targets = targets.long()
             loss = torch.cat([loss_func(preds[:, target_index, :], targets[:, target_index]).unsqueeze(1) for target_index in range(preds.size(1))], dim=1) * class_weights * mask
         else:
-            loss = loss_func(preds, targets) * class_weights * mask
+            loss = loss_func(preds, targets)
+            loss = loss * weights * mask
         loss = loss.sum() / mask.sum()
 
         loss_sum += loss.item()
