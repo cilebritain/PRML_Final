@@ -9,6 +9,7 @@ from torch.optim import Optimizer
 from torch.optim.lr_scheduler import _LRScheduler
 from tqdm import tqdm
 
+from chemprop.models import FocalLoss
 from chemprop.args import TrainArgs
 from chemprop.data import MoleculeDataLoader, MoleculeDataset
 from chemprop.nn_utils import compute_gnorm, compute_pnorm, NoamLR
@@ -56,13 +57,17 @@ def train(model: nn.Module,
         mask = mask.to(preds.device)
         targets = targets.to(preds.device)
         
+        fl = FocalLoss(gamma=2)
         weights = torch.tensor([[1.] if targets[i][0] == 0 else [1.] for i in range(targets.size()[0])]).cuda()
         if args.dataset_type == 'multiclass':
             targets = targets.long()
             loss = torch.cat([loss_func(preds[:, target_index, :], targets[:, target_index]).unsqueeze(1) for target_index in range(preds.size(1))], dim=1) * class_weights * mask
         else:
-            loss = loss_func(preds, targets)
-            loss = loss * weights * mask
+#            loss = loss_func(preds, targets)
+#            loss = loss * weights * mask
+            print(preds, targets)
+            print(loss_func)
+            loss = fl(preds, targets)
         loss = loss.sum() / mask.sum()
 
         loss_sum += loss.item()
