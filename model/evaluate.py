@@ -60,4 +60,4 @@ if __name__ == "__main__":
         plt.show()
 
     # plot_roc(truth, prediction)
-    plot_prc(truth, prediction)
+    # plot_prc(truth, prediction)
