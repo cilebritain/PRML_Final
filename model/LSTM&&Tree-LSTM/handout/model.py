@@ -100,6 +100,7 @@ class TreeModel(nn.Module):
                     ts = torch.tensor([sub], dtype=torch.float64).cuda()
                     rs, h = self.lstm1(ts)
                     a.append(rs[0][len(sub) - 1][:])
+                    sub = []
 
                 ts = torch.zeros(0, dtype=torch.float64).cuda()
                 for x in a:

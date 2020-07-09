@@ -57,7 +57,7 @@ def get_checkpoint_paths(checkpoint_path: Optional[str] = None,
 class CommonArgs(Tap):
     """CommonArgs contains arguments that are used in both TrainArgs and PredictArgs."""
 
-    smiles_column: str = None  # Name of the column containing SMILES strings. By default, uses the first column.
+    smiles_column: str = 'smiles'  # Name of the column containing SMILES strings. By default, uses the first column.
     checkpoint_dir: str = None  # Directory from which to load model checkpoints (walks directory and ensembles all models that are found)
     checkpoint_path: str = None  # Path to model checkpoint (.pt file)
     checkpoint_paths: List[str] = None  # List of paths to model checkpoints (.pt files)
@@ -116,8 +116,8 @@ class TrainArgs(CommonArgs):
 
     # General arguments
     data_path: str  # Path to data CSV file
-    target_columns: List[str] = None  # Name of the columns containing target values. By default, uses all columns except the SMILES column.
-    dataset_type: Literal['regression', 'classification', 'multiclass']  # Type of dataset. This determines the loss function used during training.
+    target_columns: List[str] = ['activity']  # Name of the columns containing target values. By default, uses all columns except the SMILES column.
+    dataset_type: str = 'classification'  # Type of dataset. This determines the loss function used during training.
     multiclass_num_classes: int = 3  # Number of classes when running multiclass classification
     separate_val_path: str = None  # Path to separate val set, optional
     separate_test_path: str = None  # Path to separate test set, optional
@@ -359,9 +359,9 @@ class SklearnPredictArgs(Tap):
     """SklearnPredictArgs contains arguments used for predicting with a trained scikit-learn model."""
 
     test_path: str  # Path to CSV file containing testing data for which predictions will be made
-    smiles_column: str = None  # Name of the column containing SMILES strings. By default, uses the first column.
+#    smiles_column: str = 'smiles'  # Name of the column containing SMILES strings. By default, uses the first column.
     preds_path: str  # Path to CSV file where predictions will be saved
-    dataset_type: Literal['classification', 'regression']  # Type of dataset
+#    dataset_type: Literal['classification', 'regression']  # Type of dataset
     model_type: Literal['random_forest', 'svm']  # scikit-learn model to use
     checkpoint_dir: str = None  # Path to directory containing model checkpoints (.pkl file)
     checkpoint_path: str = None  # Path to model checkpoint (.pkl file)

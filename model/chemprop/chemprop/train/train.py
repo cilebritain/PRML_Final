@@ -63,11 +63,11 @@ def train(model: nn.Module,
             targets = targets.long()
             loss = torch.cat([loss_func(preds[:, target_index, :], targets[:, target_index]).unsqueeze(1) for target_index in range(preds.size(1))], dim=1) * class_weights * mask
         else:
-#            loss = loss_func(preds, targets)
-#            loss = loss * weights * mask
-            print(preds, targets)
-            print(loss_func)
-            loss = fl(preds, targets)
+            loss = loss_func(preds, targets)
+            loss = loss * weights * mask
+#            print(preds, targets)
+#            print(loss_func)
+#            loss = fl(preds, targets)
         loss = loss.sum() / mask.sum()
 
         loss_sum += loss.item()
